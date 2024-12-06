@@ -1,6 +1,8 @@
+package se.kth.jdbclab.labb;
+
 import java.sql.*;
 
-public class Main {
+public class App {
     public static void main(String[] args) throws Exception {
 
         if (args.length != 2) {
