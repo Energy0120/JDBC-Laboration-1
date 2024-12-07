@@ -15,7 +15,7 @@ public class App {
         System.out.println(user + ", " + pwd);
         String database = "bookvault"; // the name of the specific database
         String server
-                = "jdbc:mysql://localhost:3306/" + database
+                = "jdbc:mysql://84.217.80.235/" + database
                 + "?UseClientEnc=UTF8";
 
         Connection con = null;
