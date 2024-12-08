@@ -3,24 +3,19 @@ package se.kth.jdbclab.labb.model;
 import java.util.Date;
 
 public class Review {
-    private int ISBN;
-    private int grade;
+    private int gradeID, grade;
     private String text;
     private Date grade_date;
 
-    public Review(int ISBN, int grade, String text, Date grade_date) {
-        this.ISBN = ISBN;
+    public Review(int gradeID, int grade, String text, Date grade_date) {
+        this.gradeID = gradeID;
         this.grade = grade;
         this.text = text;
         this.grade_date = grade_date;
     }
 
-    public int getISBN() {
-        return ISBN;
-    }
-
-    public void setISBN(int ISBN) {
-        this.ISBN = ISBN;
+    public void setGradeID(int gradeID) {
+        this.gradeID = gradeID;
     }
 
     public int getGrade() {

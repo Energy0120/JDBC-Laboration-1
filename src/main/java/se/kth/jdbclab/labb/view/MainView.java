@@ -9,14 +9,11 @@ import se.kth.jdbclab.labb.model.Author;
 import se.kth.jdbclab.labb.model.Book;
 
 public class MainView {
-    private BorderPane root;
-    private TableView<Book> bookTable;
-    private TableView<Author> authorTable;
-    private Button addButton;
-    private Button deleteButton;
+    private final TableView<Book> bookTable;
+    private final Button addButton, deleteButton, viewButton;
 
     public MainView(Stage stage) {
-        root = new BorderPane();
+        BorderPane root = new BorderPane();
 
         // Create the table
         bookTable = new TableView<>();
@@ -29,14 +26,21 @@ public class MainView {
         TableColumn<Book, String> authorColumn = new TableColumn<>("Authors");
         authorColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getAuthorNames()));
 
-        bookTable.getColumns().addAll(isbnColumn, titleColumn, authorColumn);
+        TableColumn<Book, String> genreColumn = new TableColumn<>("Genre");
+        genreColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getGenreNames()));
+
+        TableColumn<Book, String> gradeColumn = new TableColumn<>("Rating");
+        gradeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getAverageRating()));
+
+        bookTable.getColumns().addAll(isbnColumn, titleColumn, authorColumn, genreColumn, gradeColumn);
 
 
         // Create buttons
         HBox buttons = new HBox(10);
         addButton = new Button("Add Book");
         deleteButton = new Button("Delete Book");
-        buttons.getChildren().addAll(addButton, deleteButton);
+        viewButton = new Button("View Book");
+        buttons.getChildren().addAll(addButton, deleteButton, viewButton);
 
         // Assemble the GUI
         root.setCenter(bookTable);
@@ -52,15 +56,15 @@ public class MainView {
         return bookTable;
     }
 
-    public TableView<Author> getAuthorTable() {
-        return authorTable;
-    }
-
     public Button getAddButton() {
         return addButton;
     }
 
     public Button getDeleteButton() {
         return deleteButton;
+    }
+
+    public Button getViewButton() {
+        return viewButton;
     }
 }
