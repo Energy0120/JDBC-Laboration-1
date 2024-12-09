@@ -4,6 +4,7 @@ module se.kth.jdbclab.labb {
     requires java.sql;
     requires java.desktop;
     requires mysql.connector.j;
+    requires jdk.compiler;
 
 
     opens se.kth.jdbclab.labb to javafx.fxml;

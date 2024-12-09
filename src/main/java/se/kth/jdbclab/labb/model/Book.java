@@ -1,5 +1,8 @@
 package se.kth.jdbclab.labb.model;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -7,14 +10,14 @@ import java.util.List;
 public class Book {
     private String isbn, title;
     private List<Author> authors;
-    private List<Review> reviews;
+    private ObservableList<Review> reviews;
     private List<Genre> genre;
 
     public Book(String isbn, String title) {
         this.isbn = isbn;
         this.title = title;
         this.authors = new ArrayList<>();
-        this.reviews = new ArrayList<>();
+        this.reviews = FXCollections.observableArrayList();
         this.genre = new ArrayList<>();
     }
 
@@ -66,11 +69,11 @@ public class Book {
         return genreNames.substring(0, genreNames.length() - 2);
     }
 
-    public void setReviews(List<Review> reviews) {
+    public void setReviews(ObservableList<Review> reviews) {
         this.reviews = reviews;
     }
 
-    public List<Review> getReviews() {
+    public ObservableList<Review> getReviews() {
         return reviews;
     }
 
@@ -82,6 +85,6 @@ public class Book {
         if (averageRating==0) {
             return "No Rating";
         }
-        return String.valueOf(averageRating/=reviews.size());
+        return String.valueOf(averageRating/reviews.size());
     }
 }

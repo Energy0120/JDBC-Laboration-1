@@ -1,22 +1,40 @@
 package se.kth.jdbclab.labb.view;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import se.kth.jdbclab.labb.model.Author;
+import se.kth.jdbclab.labb.controller.MainController;
 import se.kth.jdbclab.labb.model.Book;
+import se.kth.jdbclab.labb.model.Review;
 
 public class MainView {
-    private final TableView<Book> bookTable;
-    private final Button addButton, deleteButton, viewButton;
+    private TableView<Book> libraryTable;
+    private TableView<Review> bookTable;
+    private BorderPane root;
+    private Button addButton, deleteButton, viewButton, loginButton, createAccountButton;
+    private final Scene scene;
+    private final MainController controller;
 
-    public MainView(Stage stage) {
-        BorderPane root = new BorderPane();
+    public MainView(Stage stage, MainController controller) {
+        this.controller = controller;
+        scene = new Scene(root, 800, 600);
+        stage.setScene(scene);
+        stage.setTitle("Book Database");
+        stage.show();
+    }
 
-        // Create the table
-        bookTable = new TableView<>();
+    public void makeLibraryTable() {
+        root = new BorderPane();
+        libraryTable = new TableView<>();
+        addButton = new Button();
+        deleteButton = new Button();
+        viewButton = new Button();
+        loginButton = new Button();
+        createAccountButton = new Button();
+
         TableColumn<Book, String> isbnColumn = new TableColumn<>("ISBN");
         isbnColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIsbn()));
 
@@ -32,27 +50,71 @@ public class MainView {
         TableColumn<Book, String> gradeColumn = new TableColumn<>("Rating");
         gradeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getAverageRating()));
 
-        bookTable.getColumns().addAll(isbnColumn, titleColumn, authorColumn, genreColumn, gradeColumn);
+        libraryTable.getColumns().addAll(isbnColumn, titleColumn, authorColumn, genreColumn, gradeColumn);
 
-
-        // Create buttons
-        HBox buttons = new HBox(10);
-        addButton = new Button("Add Book");
-        deleteButton = new Button("Delete Book");
-        viewButton = new Button("View Book");
-        buttons.getChildren().addAll(addButton, deleteButton, viewButton);
-
-        // Assemble the GUI
-        root.setCenter(bookTable);
+        HBox buttons = createButtons("Add", "Remove", "View");
+        addButton.setOnAction(e -> controller.addBook());
+        root.setCenter(libraryTable);
         root.setBottom(buttons);
-
-        Scene scene = new Scene(root, 800, 600);
-        stage.setScene(scene);
-        stage.setTitle("Book Database");
-        stage.show();
+        if(scene != null)
+            scene.setRoot(root);
     }
 
-    public TableView<Book> getBookTable() {
+    public void makeBookTable() {
+        root = new BorderPane();
+        bookTable = new TableView<>();
+
+        TableColumn<Review, String> gradeColumn = new TableColumn<>("Grade");
+        gradeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getGrade())));
+
+        TableColumn<Review, String> userNameColumn = new TableColumn<>("User Name");
+        userNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getUser().getName())));
+
+        TableColumn<Review, String> textColumn = new TableColumn<>("Description");
+        textColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getText())));
+
+        TableColumn<Review, String> dateColumn = new TableColumn<>("Date");
+        dateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getGrade_date())));
+
+        bookTable.getColumns().addAll(gradeColumn, userNameColumn, textColumn, dateColumn);
+
+        HBox buttons = createButtons("Add Review", "Delete Review", "Back");
+        root.setCenter(bookTable);
+        root.setBottom(buttons);
+        scene.setRoot(root);
+    }
+
+    private HBox createButtons(String add, String delete, String view){
+
+        HBox buttons = new HBox(10);
+        HBox manageButtons = new HBox(10);
+        manageButtons.setAlignment(Pos.CENTER_LEFT);
+        HBox spacer = new HBox();
+        spacer.setAlignment(Pos.CENTER);
+        HBox loginButtons = new HBox(10);
+        loginButtons.setAlignment(Pos.CENTER_RIGHT);
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        addButton = new Button(add);
+        addButton.setText(add);
+        deleteButton = new Button(delete);
+        deleteButton.setText(delete);
+        viewButton = new Button(view);
+        viewButton.setText(view);
+        loginButton = new Button("Login");
+        createAccountButton = new Button("Create Account");
+
+        loginButtons.getChildren().addAll(loginButton, createAccountButton);
+        manageButtons.getChildren().addAll(addButton, deleteButton, viewButton);
+        buttons.getChildren().addAll(manageButtons, spacer, loginButtons);
+        return buttons;
+    }
+
+    public TableView<Book> getLibraryTable() {
+        return libraryTable;
+    }
+
+    public TableView<Review> getBookTable() {
         return bookTable;
     }
 
@@ -66,5 +128,9 @@ public class MainView {
 
     public Button getViewButton() {
         return viewButton;
+    }
+
+    public Scene getScene() {
+        return scene;
     }
 }

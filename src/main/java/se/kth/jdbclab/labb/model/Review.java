@@ -6,12 +6,14 @@ public class Review {
     private int gradeID, grade;
     private String text;
     private Date grade_date;
+    private User user;
 
-    public Review(int gradeID, int grade, String text, Date grade_date) {
+    public Review(int gradeID, int grade, String text, Date grade_date, User user) {
         this.gradeID = gradeID;
         this.grade = grade;
         this.text = text;
         this.grade_date = grade_date;
+        this.user = user;
     }
 
     public void setGradeID(int gradeID) {
@@ -36,6 +38,10 @@ public class Review {
 
     public Date getGrade_date() {
         return grade_date;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public void setGrade_date(Date grade_date) {
