@@ -2,7 +2,7 @@ package se.kth.jdbclab.labb.model;
 
 import java.util.Date;
 
-public class Review extends ListItem {
+public class Review {
     private int gradeID, grade;
     private String text;
     private Date grade_date;

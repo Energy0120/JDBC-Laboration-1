@@ -9,7 +9,6 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import se.kth.jdbclab.labb.controller.MainController;
 import se.kth.jdbclab.labb.model.Book;
-import se.kth.jdbclab.labb.model.ListItem;
 import se.kth.jdbclab.labb.model.Review;
 
 import java.util.List;

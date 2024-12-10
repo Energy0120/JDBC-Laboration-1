@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class Book extends ListItem {
+public class Book {
     private String isbn, title;
     private List<Author> authors;
     private ObservableList<Review> reviews;
