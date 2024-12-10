@@ -7,7 +7,54 @@ import se.kth.jdbclab.labb.view.MainView;
 
 import javax.swing.*;
 import java.sql.*;
+import java.util.List;
 
+public class LibraryController {
+    private MainView view;
+    private IDatabase database;
+
+    public LibraryController(MainView view, IDatabase database) {
+        this.view = view;
+        this.database = database;
+
+        // Refresh books from database
+        try {
+            List<Book> books = database.loadBooks();
+            view.refreshLibrary(books);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Button actions
+        view.getAddButton().setOnAction(e -> addBook());
+        view.getDeleteButton().setOnAction(e -> deleteBook());
+    }
+
+    private void addBook() {
+        try {
+            Book newBook = new Book("1234", "New Book");
+            database.insertBook(newBook);
+            //view.refreshLibrary(database.loadBooks()); // Example, refresh with new book
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteBook() {
+        Book selectedBook = view.getLibraryTable().getSelectionModel().getSelectedItem();
+        if (selectedBook != null) {
+            try {
+                database.deleteBook(selectedBook);
+                //view.refreshLibrary(database.loadBooks()); // Refresh book list after deletion
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+
+/*
 public class LibraryController {
     private final MainView view;
     private final Connection connection;
@@ -112,3 +159,4 @@ public class LibraryController {
         }
     }
 }
+*/

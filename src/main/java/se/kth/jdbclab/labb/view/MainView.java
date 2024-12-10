@@ -1,6 +1,7 @@
 package se.kth.jdbclab.labb.view;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -8,11 +9,13 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import se.kth.jdbclab.labb.controller.MainController;
 import se.kth.jdbclab.labb.model.Book;
+import se.kth.jdbclab.labb.model.ListItem;
 import se.kth.jdbclab.labb.model.Review;
 
+import java.util.List;
+
 public class MainView {
-    private TableView<Book> libraryTable;
-    private TableView<Review> bookTable;
+    private TableView libraryTable;
     private BorderPane root;
     private Button addButton, deleteButton, viewButton, loginButton, createAccountButton;
     private final Scene scene;
@@ -20,20 +23,26 @@ public class MainView {
 
     public MainView(Stage stage, MainController controller) {
         this.controller = controller;
-        scene = new Scene(root, 800, 600);
-        stage.setScene(scene);
-        stage.setTitle("Book Database");
-        stage.show();
-    }
-
-    public void makeLibraryTable() {
-        root = new BorderPane();
-        libraryTable = new TableView<>();
         addButton = new Button();
         deleteButton = new Button();
         viewButton = new Button();
         loginButton = new Button();
         createAccountButton = new Button();
+        makeLibraryTable();
+        scene = new Scene(root, 800, 600);
+        stage.setScene(scene);
+        stage.setTitle("Library");
+        stage.show();
+    }
+
+    public <T> void refreshLibrary(List<T> list) {
+        libraryTable = new TableView<>();
+        libraryTable.setItems(FXCollections.observableArrayList(list));
+    }
+
+    public void makeLibraryTable() {
+        root = new BorderPane();
+        refreshLibrary(controller.loadBooks());
 
         TableColumn<Book, String> isbnColumn = new TableColumn<>("ISBN");
         isbnColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIsbn()));
@@ -53,7 +62,17 @@ public class MainView {
         libraryTable.getColumns().addAll(isbnColumn, titleColumn, authorColumn, genreColumn, gradeColumn);
 
         HBox buttons = createButtons("Add", "Remove", "View");
-        addButton.setOnAction(e -> controller.addBook());
+        /*
+        if(getLibraryTable().getSelectionModel().getSelectedItem() == null) {
+            deleteButton.setDisable(true);
+            viewButton.setDisable(true);
+        } else {
+            deleteButton.setDisable(false);
+            viewButton.setDisable(false);
+        }
+        */
+        addButton.setOnAction(e -> controller.addBook(getLibraryTable().getSelectionModel().getSelectedItem()));
+        viewButton.setOnAction(e -> makeBookTable());
         root.setCenter(libraryTable);
         root.setBottom(buttons);
         if(scene != null)
@@ -62,7 +81,7 @@ public class MainView {
 
     public void makeBookTable() {
         root = new BorderPane();
-        bookTable = new TableView<>();
+        refreshLibrary(controller.loadReviews(getLibraryTable().getSelectionModel().getSelectedItem().getIsbn()));
 
         TableColumn<Review, String> gradeColumn = new TableColumn<>("Grade");
         gradeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getGrade())));
@@ -76,10 +95,11 @@ public class MainView {
         TableColumn<Review, String> dateColumn = new TableColumn<>("Date");
         dateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getGrade_date())));
 
-        bookTable.getColumns().addAll(gradeColumn, userNameColumn, textColumn, dateColumn);
+        libraryTable.getColumns().addAll(gradeColumn, textColumn, userNameColumn, dateColumn);
 
         HBox buttons = createButtons("Add Review", "Delete Review", "Back");
-        root.setCenter(bookTable);
+        viewButton.setOnAction(e -> makeLibraryTable());
+        root.setCenter(libraryTable);
         root.setBottom(buttons);
         scene.setRoot(root);
     }
@@ -112,10 +132,6 @@ public class MainView {
 
     public TableView<Book> getLibraryTable() {
         return libraryTable;
-    }
-
-    public TableView<Review> getBookTable() {
-        return bookTable;
     }
 
     public Button getAddButton() {
