@@ -6,15 +6,15 @@ import se.kth.jdbclab.labb.model.Review;
 import se.kth.jdbclab.labb.model.User;
 
 import javax.swing.*;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 public class MainController {
     private User currentUser;
-    private int loggedIn;    // 0 = Not Logged In, 1 = User, 2 = Manager.
     Database database;
 
     public MainController(Database database) {
-        loggedIn = 0;
         this.database = database;
     }
 
@@ -22,44 +22,36 @@ public class MainController {
         return database.loadBooks();
     }
 
-    public int getLoggedIn() {
-        return loggedIn;
-    }
-
-    private void authenticate() {
-        String userName = JOptionPane.showInputDialog("Please Type your username:");
-        String password = JOptionPane.showInputDialog("Please Type your password:");
-
-    }
-    /*
-    @FunctionalInterface
-    private interface ThrowingConsumer<T> {
-        void accept(T t) throws DatabaseException;
-    }
-
-    private <T> void threadedOperation(ThrowingConsumer<T> f, T x) throws DatabaseException
-    {
-        AtomicReference<DatabaseException> dbe = new AtomicReference<>();
-        Thread t = new Thread(() -> {
-            try { f.accept(x); }
-            catch (DatabaseException e) { dbe.set(e); }
-        });
-        t.start();
-
-        try { t.join(); }
-        catch (Exception e) { throw new DatabaseException("Threading error", e); }
-
-        if (dbe.get() != null)
-            throw dbe.get();
-    }
-    */
-
     public void addBook(Book book) {
-        database.insertBook(book);
+        database.insertBook(currentUser.getUserID(), book);
     }
-
 
     public List<Review> loadReviews(String isbn) {
         return database.loadReviews(isbn);
+    }
+
+    public String login(String mail, String password) {
+        currentUser = database.loginAccount(mail, password);
+        if(currentUser == null) {
+            return null;
+        }
+        return currentUser.getName();
+    }
+
+    public String createAccount(String name, String mail, String pass) {
+        User user = database.createAccount(name, mail, pass);
+        if(user != null){
+            currentUser = user;
+            return currentUser.getName();
+        }
+        return null;
+    }
+
+    public List<Book> loadBooksByCriteria(String criteria, String value) {
+        return database.loadBooks(criteria, value);
+    }
+
+    public void addReview(String isbn, int grade, String gradeText, Date gradeDate) {
+        database.insertReview(new Review(grade, gradeText, gradeDate, currentUser.getUserID()), isbn);
     }
 }

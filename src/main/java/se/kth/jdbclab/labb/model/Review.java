@@ -3,17 +3,24 @@ package se.kth.jdbclab.labb.model;
 import java.util.Date;
 
 public class Review {
-    private int gradeID, grade;
-    private String text;
+    private int gradeID, grade, userID;
+    private String text, userName;
     private Date grade_date;
-    private User user;
 
-    public Review(int gradeID, int grade, String text, Date grade_date, User user) {
+    public Review(int gradeID, int grade, String text, Date grade_date, String userName) {
         this.gradeID = gradeID;
         this.grade = grade;
         this.text = text;
         this.grade_date = grade_date;
-        this.user = user;
+        this.userName = userName;
+    }
+
+
+    public Review(int grade, String text, Date grade_date, int userID) {
+        this.grade = grade;
+        this.text = text;
+        this.grade_date = grade_date;
+        this.userID = userID;
     }
 
     public void setGradeID(int gradeID) {
@@ -40,8 +47,16 @@ public class Review {
         return grade_date;
     }
 
-    public User getUser() {
-        return user;
+    public int getUserID() {
+        return userID;
+    }
+
+    public String getUser() {
+        return userName;
+    }
+
+    public int getGradeID() {
+        return gradeID;
     }
 
     public void setGrade_date(Date grade_date) {
