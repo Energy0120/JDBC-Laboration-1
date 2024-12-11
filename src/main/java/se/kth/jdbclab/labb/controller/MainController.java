@@ -1,11 +1,8 @@
 package se.kth.jdbclab.labb.controller;
-
 import se.kth.jdbclab.labb.model.*;
-
-import javax.swing.*;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The MainController class manages the operations related to books, users, and reviews.
@@ -24,13 +21,9 @@ public class MainController {
         this.database = database;
     }
 
-    /**
-     * Loads all books from the database.
-     *
-     * @return A list of all books.
-     */
-    public List<Book> loadBooks(){
-        return database.loadBooks();
+    @FunctionalInterface
+    private interface ThrowingConsumer<T> {
+        void accept(T t) throws DatabaseException;
     }
 
     /**
@@ -49,6 +42,31 @@ public class MainController {
      */
     public void removeBook(Book book) {
         database.manageBook(true, currentUser.getUserID(), book);
+    }
+
+    /**
+     * Adds a review for a book with a specified grade, text, and date.
+     *
+     * @param isbn The ISBN of the book being reviewed.
+     * @param grade The grade given in the review.
+     * @param gradeText The text of the review.
+     * @param gradeDate The date when the review was written.
+     */
+    public void addReview(String isbn, int grade, String gradeText, Date gradeDate) {
+        database.insertReview(new Review(grade, gradeText, gradeDate, currentUser.getUserID()), isbn);
+    }
+
+    public void addAuthor(Author author) {
+        database.insertAuthor(currentUser.getUserID(), author);
+    }
+
+    /**
+     * Loads all books from the database.
+     *
+     * @return A list of all books.
+     */
+    public List<Book> loadBooks(){
+        return database.loadBooks();
     }
 
     /**
@@ -111,21 +129,5 @@ public class MainController {
      */
     public List<Author> loadAuthors(){
         return database.loadAuthors();
-    }
-
-    /**
-     * Adds a review for a book with a specified grade, text, and date.
-     *
-     * @param isbn The ISBN of the book being reviewed.
-     * @param grade The grade given in the review.
-     * @param gradeText The text of the review.
-     * @param gradeDate The date when the review was written.
-     */
-    public void addReview(String isbn, int grade, String gradeText, Date gradeDate) {
-        database.insertReview(new Review(grade, gradeText, gradeDate, currentUser.getUserID()), isbn);
-    }
-
-    public void addAuthor(Author author) {
-        database.insertAuthor(currentUser.getUserID(), author);
     }
 }

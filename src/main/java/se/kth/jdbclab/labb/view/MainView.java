@@ -424,7 +424,7 @@ public class MainView {
         dialog.setTitle("Add Author");
         dialog.setResultConverter(buttonType -> {
             if (buttonType == ButtonType.OK) {
-                if (Objects.equals(NameField.getText(), "") || DODField == null || DOBField == null) {
+                if (Objects.equals(NameField.getText(), "")) {
                     alertError = new Alert(Alert.AlertType.ERROR);
                     alertError.setTitle("Author Error");
                     alertError.setHeaderText("Invalid Input");
@@ -432,8 +432,11 @@ public class MainView {
                     alertError.showAndWait();
                     return null;
                 }
-                Date DOD = Date.from(DODField.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                Date DOB = Date.from(DOBField.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                Date DOD = null, DOB = null;
+                if(DODField.getValue() != null)
+                    DOD = Date.from(DODField.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                if(DOBField.getValue() != null)
+                    DOB = Date.from(DOBField.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
                 controller.addAuthor(new Author(NameField.getText(), DOB, DOD));
                 makeLibraryTable(controller.loadBooks());
             }

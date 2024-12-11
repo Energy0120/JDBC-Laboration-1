@@ -299,12 +299,20 @@ public class Database implements IDatabase {
 
     @Override
     public void insertAuthor(int userID, Author author) {
+        Date DOB = (Date) author.getDateOfBirth();
+        Date DOD = (Date) author.getDateOfDeath();
         try {
             query = "INSERT INTO T_Author (authorName, DOB, DOD) VALUES (?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, author.getName());
-                stmt.setDate(2, new java.sql.Date(author.getDateOfBirth().getTime()));
-                stmt.setDate(3, new java.sql.Date(author.getDateOfDeath().getTime()));
+                if(DOB == null)
+                    stmt.setNull(2, 4);
+                else
+                    stmt.setDate(2, new java.sql.Date(author.getDateOfBirth().getTime()));
+                if(DOD == null)
+                    stmt.setNull(3, 4);
+                else
+                    stmt.setDate(3, new java.sql.Date(author.getDateOfDeath().getTime()));
                 stmt.executeUpdate();
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
