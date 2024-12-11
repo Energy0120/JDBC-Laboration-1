@@ -3,6 +3,7 @@ package se.kth.jdbclab.labb.model;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -85,6 +86,6 @@ public class Book {
         if (averageRating==0) {
             return "No Rating";
         }
-        return String.valueOf(averageRating/reviews.size());
+        return String.valueOf(BigDecimal.valueOf(averageRating/reviews.size()).setScale(2,BigDecimal.ROUND_HALF_UP).floatValue());
     }
 }
