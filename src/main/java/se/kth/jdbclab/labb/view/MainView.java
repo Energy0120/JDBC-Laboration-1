@@ -127,7 +127,7 @@ public class MainView {
         Dialog dialog = new Dialog();
         VBox container = new VBox();
         container.setSpacing(10);
-        Label gradeLabel = new Label("Grade: ");
+        Label gradeLabel = new Label("Grade (1-5): ");
         TextField gradeField = new TextField ();
         HBox gradeBox = new HBox();
         gradeBox.getChildren().addAll(gradeLabel, gradeField);
@@ -144,8 +144,20 @@ public class MainView {
         dialog.getDialogPane().setContent(container);
         dialog.setResultConverter(buttonType -> {
             if (buttonType == ButtonType.OK) {
-                controller.addReview(isbn, Integer.parseInt(gradeField.getText()), descField.getText(), new Date());
-                makeLibraryTable(controller.loadBooks());
+                try {
+                    int grade = Integer.parseInt(gradeField.getText());
+                    if (grade < 1 || grade > 5) {
+                        throw new NumberFormatException("Grade must be between 1 and 5.");
+                    }
+                    controller.addReview(isbn, grade, descField.getText(), new Date());
+                    makeLibraryTable(controller.loadBooks());
+                } catch (NumberFormatException ex) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Invalid Input");
+                    alert.setHeaderText("Grade Error");
+                    alert.setContentText("Please enter a valid grade between 1 and 5.");
+                    alert.showAndWait();
+                }
             }
             return null;
         });

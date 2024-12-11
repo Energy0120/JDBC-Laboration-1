@@ -16,7 +16,6 @@ public class Database implements IDatabase {
     public Database() {
         alertError = new Alert(Alert.AlertType.ERROR);
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/bookvault", "root", "password");
         }catch (SQLException e) {
             e.printStackTrace();
         }
@@ -89,7 +88,7 @@ public class Database implements IDatabase {
                 "JOIN T_Book_Genre ON T_Book.ISBN = T_Book_Genre.ISBN\n" +
                 "LEFT JOIN T_Grade ON T_Book.ISBN = T_Grade.ISBN\n" +
                 "LEFT JOIN T_User ON T_User.userID = T_Grade.userID\n " +
-                "WHERE " + subQuery + " = '" + value + "';");
+                "WHERE " + subQuery + " LIKE '%" + value + "%';");
     }
 
 
