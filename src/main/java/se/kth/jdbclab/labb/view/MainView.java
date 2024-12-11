@@ -24,7 +24,7 @@ import java.util.Objects;
 public class MainView {
     private TableView libraryTable;
     private BorderPane root;
-    private Button addButton, deleteButton, viewButton, loginButton, createAccountButton, addAuthor;
+    private Button addButton, deleteButton, viewButton, loginButton, createAccountButton, addAuthor, refreshButton;
     private final Button searchButton;
     private final Scene scene;
     private final MainController controller;
@@ -196,6 +196,7 @@ public class MainView {
         loginState.setAlignment(Pos.CENTER_RIGHT);
         HBox.setHgrow(spacer, Priority.ALWAYS);
         addButton = new Button();
+        refreshButton = new Button("Refresh");
         if(Objects.equals(mode, "Library")){
             addButton.setText("Add Book");
             deleteButton = new Button("Remove Book");
@@ -213,11 +214,13 @@ public class MainView {
                 currentBook = getLibraryTable().getSelectionModel().getSelectedItem();
                 makeBookTable(currentBook);
             });
-            manageButtons.getChildren().addAll(addButton, deleteButton, addAuthor, searchButton, viewButton);
+            refreshButton.setOnAction(e -> makeLibraryTable(controller.loadBooks()));
+            manageButtons.getChildren().addAll(addButton, deleteButton, addAuthor, searchButton, viewButton, refreshButton);
         } else {
             addButton.setText("Add Review");
             viewButton.setText("Back");
-            manageButtons.getChildren().addAll(addButton, viewButton);
+            refreshButton.setOnAction(e -> makeBookTable(currentBook));
+            manageButtons.getChildren().addAll(addButton, refreshButton, viewButton);
         }
 
         if (loggedIn == null){
