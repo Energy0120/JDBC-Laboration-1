@@ -21,18 +21,13 @@ public class MainController {
         this.database = database;
     }
 
-    @FunctionalInterface
-    private interface ThrowingConsumer<T> {
-        void accept(T t) throws DatabaseException;
-    }
-
     /**
      * Adds a new book to the database.
      *
      * @param book The book to be added.
      */
     public void addBook(Book book) {
-        database.manageBook(false, currentUser.getUserID(), book);
+        new Thread(() -> database.manageBook(false, currentUser.getUserID(), book)).start();
     }
 
     /**
@@ -41,7 +36,7 @@ public class MainController {
      * @param book The book to be removed.
      */
     public void removeBook(Book book) {
-        database.manageBook(true, currentUser.getUserID(), book);
+        new Thread(() -> database.manageBook(true, currentUser.getUserID(), book)).start();
     }
 
     /**
@@ -53,11 +48,16 @@ public class MainController {
      * @param gradeDate The date when the review was written.
      */
     public void addReview(String isbn, int grade, String gradeText, Date gradeDate) {
-        database.insertReview(new Review(grade, gradeText, gradeDate, currentUser.getUserID()), isbn);
+        new Thread(() -> database.insertReview(new Review(grade, gradeText, gradeDate, currentUser.getUserID()), isbn)).start();
     }
 
+    /**
+     * Adds a new Author to the database.
+     *
+     * @param author The author to be added.
+     */
     public void addAuthor(Author author) {
-        database.insertAuthor(currentUser.getUserID(), author);
+        new Thread(() -> database.insertAuthor(currentUser.getUserID(), author)).start();
     }
 
     /**

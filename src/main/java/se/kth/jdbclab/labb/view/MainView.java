@@ -30,6 +30,7 @@ public class MainView {
     private final MainController controller;
     private String loggedIn;    // null = Not Logged In.
     private Alert alertError;
+    private Book currentBook;
 
     /**
      * Constructs the main view of the application.
@@ -165,7 +166,7 @@ public class MainView {
                         throw new NumberFormatException("Grade must be between 1 and 5.");
                     }
                     controller.addReview(isbn, grade, descField.getText(), new Date());
-                    makeLibraryTable(controller.loadBooks());
+                    makeBookTable(currentBook);
                 } catch (NumberFormatException ex) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Grade Error");
@@ -208,7 +209,10 @@ public class MainView {
                 controller.removeBook(getLibraryTable().getSelectionModel().getSelectedItem());
                 makeLibraryTable(controller.loadBooks());
             });
-            viewButton.setOnAction(e -> makeBookTable(getLibraryTable().getSelectionModel().getSelectedItem()));
+            viewButton.setOnAction(e -> {
+                currentBook = getLibraryTable().getSelectionModel().getSelectedItem();
+                makeBookTable(currentBook);
+            });
             manageButtons.getChildren().addAll(addButton, deleteButton, addAuthor, searchButton, viewButton);
         } else {
             addButton.setText("Add Review");

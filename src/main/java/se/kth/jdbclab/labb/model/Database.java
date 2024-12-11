@@ -125,6 +125,7 @@ public class Database implements IDatabase {
             if(mode){
                 queries = new String[]{"DELETE FROM T_Book WHERE ISBN = ?", "DELETE FROM T_Book_Author WHERE ISBN = ?", "DELETE FROM T_Book_Genre WHERE ISBN = ?", "INSERT INTO T_BookLog (logISBN, userID, logType) VALUES (?, ?, 'remove')"};
                 try {
+                    connection.setAutoCommit(false);
                     try (PreparedStatement stmt = connection.prepareStatement(queries[1])) {
                         stmt.setString(1, selectedBook.getIsbn());
                         stmt.executeUpdate();
@@ -144,13 +145,28 @@ public class Database implements IDatabase {
                         stmt.setString(1, selectedBook.getIsbn());
                         stmt.executeUpdate();
                     }
+                    connection.commit();
                 } catch (SQLException e) {
+                    // Rollback in case of an error
+                    try {
+                        connection.rollback();
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
                     e.printStackTrace();
+                } finally {
+                    // Reset auto-commit to true after the transaction
+                    try {
+                        connection.setAutoCommit(true);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             else {
                 queries = new String[]{"INSERT INTO T_Book (ISBN, Title) VALUES (?, ?)", "INSERT INTO T_Book_Author (ISBN, AuthorID) VALUES (?, ?)", "INSERT INTO T_Book_Genre (ISBN, Genre) VALUES (?, ?)", "INSERT INTO T_BookLog (logISBN, userID, logType) VALUES (?, ?, 'add')"};
                 try {
+                    connection.setAutoCommit(false);
                     try (PreparedStatement stmt = connection.prepareStatement(queries[0])) {
                         stmt.setString(1, selectedBook.getIsbn());
                         stmt.setString(2, selectedBook.getTitle());
@@ -161,24 +177,38 @@ public class Database implements IDatabase {
                         for(Author author : selectedBook.getAuthors()){
                             stmt.setString(1, selectedBook.getIsbn());
                             stmt.setInt(2, author.getAuthorID());
+                            stmt.executeUpdate();
                         }
-                        stmt.executeUpdate();
                     }
 
                     try (PreparedStatement stmt = connection.prepareStatement(queries[2])) {
                         for(Genre genre : selectedBook.getGenre()){
                             stmt.setString(1, selectedBook.getIsbn());
                             stmt.setString(2, genre.getGenre());
+                            stmt.executeUpdate();
                         }
-                        stmt.executeUpdate();
                     }
                     try (PreparedStatement stmt = connection.prepareStatement(queries[3])) {
                         stmt.setString(1, selectedBook.getIsbn());
                         stmt.setInt(2, userID);
                         stmt.executeUpdate();
                     }
+                    connection.commit();
                 } catch (SQLException e) {
+                    // Rollback in case of an error
+                    try {
+                        connection.rollback();
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
                     e.printStackTrace();
+                } finally {
+                    // Reset auto-commit to true after the transaction
+                    try {
+                        connection.setAutoCommit(true);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -302,6 +332,7 @@ public class Database implements IDatabase {
         Date DOB = (Date) author.getDateOfBirth();
         Date DOD = (Date) author.getDateOfDeath();
         try {
+            connection.setAutoCommit(false);
             query = "INSERT INTO T_Author (authorName, DOB, DOD) VALUES (?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, author.getName());
@@ -330,9 +361,21 @@ public class Database implements IDatabase {
                     }
                 }
             }
+            connection.commit();
 
         } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
