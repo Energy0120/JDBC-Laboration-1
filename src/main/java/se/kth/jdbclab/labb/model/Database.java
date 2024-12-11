@@ -12,11 +12,13 @@ import java.util.Objects;
 public class Database implements IDatabase {
     private Connection connection;
     private Alert alertError;
+    String query;
 
     public Database() {
         alertError = new Alert(Alert.AlertType.ERROR);
         try {
-        }catch (SQLException e) {
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/bookvault", "root", "password");
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -32,6 +34,7 @@ public class Database implements IDatabase {
                     String isbn = rs.getString("T_Book.ISBN");
                     String title = rs.getString("T_Book.Title");
                     String authorName = rs.getString("T_Author.AuthorName");
+                    int authorId = rs.getInt("T_Author.AuthorId");
                     String genre = rs.getString("T_Book_Genre.Genre");
                     Review grade = new Review(rs.getInt("T_Grade.gradeID"), rs.getInt("T_Grade.grade"), rs.getString("T_Grade.GradeText"), rs.getDate("T_Grade.GradeDate"), rs.getString("T_User.userName"));
                     for (Book book : bookList) {
@@ -39,7 +42,7 @@ public class Database implements IDatabase {
                             if(!book.getGenreNames().contains(genre))
                                 book.getGenre().add(new Genre(genre));
                             else if (!book.getAuthorNames().contains(authorName))
-                                book.getAuthors().add(new Author(authorName));
+                                book.getAuthors().add(new Author(authorId, authorName));
                             else{
                                 book.getReviews().add(grade);
                             }
@@ -49,7 +52,7 @@ public class Database implements IDatabase {
                     }
                     if (!found) {
                         newBook = new Book(isbn, title);
-                        newBook.getAuthors().add(new Author(authorName));
+                        newBook.getAuthors().add(new Author(authorId, authorName));
                         newBook.getGenre().add(new Genre(genre));
                         newBook.getReviews().add(grade);
                         bookList.add(newBook);
@@ -64,7 +67,7 @@ public class Database implements IDatabase {
 
     @Override
     public List<Book> loadBooks() {
-        return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
+        return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorID, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
                 "FROM T_Book\n" +
                 "JOIN T_Book_Author ON T_Book.ISBN = T_Book_Author.ISBN\n" +
                 "JOIN T_Author ON T_Book_Author.AuthorID = T_Author.AuthorID\n" +
@@ -77,11 +80,11 @@ public class Database implements IDatabase {
     public List<Book> loadBooks(String criteria, String value){
         String subQuery = switch (criteria) {
             case "ID" -> "T_Book.ISBN";
-            case "Name" -> "T_Book.Title";
+            case "Title" -> "T_Book.Title";
             case "Author" -> "T_Author.AuthorName";
             case null, default -> "T_Book_Genre.Genre";
         };
-        return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
+        return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorID, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
                 "FROM T_Book\n" +
                 "JOIN T_Book_Author ON T_Book.ISBN = T_Book_Author.ISBN\n" +
                 "JOIN T_Author ON T_Book_Author.AuthorID = T_Author.AuthorID\n" +
@@ -91,66 +94,101 @@ public class Database implements IDatabase {
                 "WHERE " + subQuery + " LIKE '%" + value + "%';");
     }
 
-
     @Override
-    public void deleteBook(Book selectedBook) {
-        if (selectedBook != null) {
-            try {
-                String query = "DELETE FROM T_Book WHERE ISBN = ?";
-                try (PreparedStatement stmt = connection.prepareStatement(query)) {
-                    stmt.setString(1, selectedBook.getIsbn());
-                    stmt.executeUpdate();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+    public List<Author> loadAuthors() {
+        List<Author> authorList = FXCollections.observableArrayList();
+        query = "SELECT  authorID, authorName FROM T_Author;";
+
+        try (ResultSet rs = connection.createStatement().executeQuery(query)) {
+            while (rs.next()) {
+                authorList.add(new Author(rs.getInt("T_Author.authorID"), rs.getString("T_Author.authorName")));
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
+
+        return authorList;
     }
 
+
+    /**
+     * Inserts or Removes a book in the database depending on the variable mode.
+     *
+     * @param mode false: inserts books, true: removes book.
+     * @param userID
+     * @param selectedBook
+     */
     @Override
-    public void insertBook(int userID, Book book) {
-            try {
-                String query = "INSERT INTO T_Book (ISBN, Title) VALUES (?, ?)";
-                try (PreparedStatement stmt = connection.prepareStatement(query)) {
-                    stmt.setString(1, book.getIsbn());
-                    stmt.setString(2, book.getTitle());
-                    stmt.executeUpdate();
-                }
-
-                query = "INSERT INTO T_Book_Author (ISBN, AuthorID) VALUES (?, ?)";
-                try (PreparedStatement stmt = connection.prepareStatement(query)) {
-                    for(Author author : book.getAuthors()){
-                        stmt.setString(1, book.getIsbn());
-                        stmt.setInt(2, author.getAuthorID());
+    public void manageBook(boolean mode, int userID, Book selectedBook) {
+        if (selectedBook != null) {
+            String[] queries;
+            if(mode){
+                queries = new String[]{"DELETE FROM T_Book WHERE ISBN = ?", "DELETE FROM T_Book_Author WHERE ISBN = ?", "DELETE FROM T_Book_Genre WHERE ISBN = ?", "INSERT INTO T_BookLog (logISBN, userID, logType) VALUES (?, ?, 'remove')"};
+                try {
+                    try (PreparedStatement stmt = connection.prepareStatement(queries[1])) {
+                        stmt.setString(1, selectedBook.getIsbn());
+                        stmt.executeUpdate();
                     }
-                    stmt.executeUpdate();
-                }
 
-                query = "INSERT INTO T_Book_Genre (ISBN, Genre) VALUES (?, ?)";
-                try (PreparedStatement stmt = connection.prepareStatement(query)) {
-                    for(Genre genre : book.getGenre()){
-                        stmt.setString(1, book.getIsbn());
-                        stmt.setString(2, genre.getGenre());
+                    try (PreparedStatement stmt = connection.prepareStatement(queries[2])) {
+                        stmt.setString(1, selectedBook.getIsbn());
+                        stmt.executeUpdate();
                     }
-                    stmt.executeUpdate();
-                }
+                    try (PreparedStatement stmt = connection.prepareStatement(queries[3])) {
+                        stmt.setString(1, selectedBook.getIsbn());
+                        stmt.setInt(2, userID);
+                        stmt.executeUpdate();
+                    }
 
-                query = "INSERT INTO T_BookLog (ISBN, userID) VALUES (?, ?, 'add')";
-                try (PreparedStatement stmt = connection.prepareStatement(query)) {
-                    stmt.setString(1, book.getIsbn());
-                    stmt.setInt(2, userID);
-                    stmt.executeUpdate();
+                    try (PreparedStatement stmt = connection.prepareStatement(queries[0])) {
+                        stmt.setString(1, selectedBook.getIsbn());
+                        stmt.executeUpdate();
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
+            else {
+                queries = new String[]{"INSERT INTO T_Book (ISBN, Title) VALUES (?, ?)", "INSERT INTO T_Book_Author (ISBN, AuthorID) VALUES (?, ?)", "INSERT INTO T_Book_Genre (ISBN, Genre) VALUES (?, ?)", "INSERT INTO T_BookLog (logISBN, userID, logType) VALUES (?, ?, 'add')"};
+                try {
+                    try (PreparedStatement stmt = connection.prepareStatement(queries[0])) {
+                        stmt.setString(1, selectedBook.getIsbn());
+                        stmt.setString(2, selectedBook.getTitle());
+                        stmt.executeUpdate();
+                    }
+
+                    try (PreparedStatement stmt = connection.prepareStatement(queries[1])) {
+                        for(Author author : selectedBook.getAuthors()){
+                            stmt.setString(1, selectedBook.getIsbn());
+                            stmt.setInt(2, author.getAuthorID());
+                        }
+                        stmt.executeUpdate();
+                    }
+
+                    try (PreparedStatement stmt = connection.prepareStatement(queries[2])) {
+                        for(Genre genre : selectedBook.getGenre()){
+                            stmt.setString(1, selectedBook.getIsbn());
+                            stmt.setString(2, genre.getGenre());
+                        }
+                        stmt.executeUpdate();
+                    }
+                    try (PreparedStatement stmt = connection.prepareStatement(queries[3])) {
+                        stmt.setString(1, selectedBook.getIsbn());
+                        stmt.setInt(2, userID);
+                        stmt.executeUpdate();
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
     }
 
     @Override
     public List<Review> loadReviews(String isbn) {
         List<Review> reviewList = FXCollections.observableArrayList();
-        String query = "SELECT  T_Grade.gradeID,  T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
+        query = "SELECT  T_Grade.gradeID,  T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
                 "FROM T_Grade\n" +
                 "LEFT JOIN T_User ON T_User.userID = T_Grade.userID\n" +
                 "WHERE ISBN = "+ isbn +";";
@@ -217,7 +255,7 @@ public class Database implements IDatabase {
 
     @Override
     public User loginAccount(String mail, String password){
-        String query = "SELECT userName, userID FROM T_User WHERE email = ? AND userPassword = ?";
+        query = "SELECT userName, userID FROM T_User WHERE email = ? AND userPassword = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, mail);
             stmt.setString(2, password);
@@ -243,7 +281,7 @@ public class Database implements IDatabase {
     @Override
     public void insertReview(Review review, String isbn) {
         try {
-            String query = "INSERT INTO T_Grade (ISBN, userID, grade, gradeText, gradeDate) VALUES (?, ?, ?, ?, ?)";
+            query = "INSERT INTO T_Grade (ISBN, userID, grade, gradeText, gradeDate) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(query)) {
                 stmt.setString(1, isbn);
                 stmt.setInt(2, review.getUserID());
@@ -254,6 +292,37 @@ public class Database implements IDatabase {
             }
         } catch (SQLIntegrityConstraintViolationException e){
             JOptionPane.showMessageDialog(null, "You have already reviewed this book.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void insertAuthor(int userID, Author author) {
+        try {
+            query = "INSERT INTO T_Author (authorName, DOB, DOD) VALUES (?, ?, ?)";
+            try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+                stmt.setString(1, author.getName());
+                stmt.setDate(2, new java.sql.Date(author.getDateOfBirth().getTime()));
+                stmt.setDate(3, new java.sql.Date(author.getDateOfDeath().getTime()));
+                stmt.executeUpdate();
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int authorID = generatedKeys.getInt(1);
+
+                        query = "INSERT INTO T_addedauthor (authorID, userID, addedAuthorDate) VALUES (?, ?, ?)";
+                        try (PreparedStatement stmt2 = connection.prepareStatement(query)) {
+                            stmt2.setInt(1, authorID);
+                            stmt2.setInt(2, userID);
+                            stmt2.setDate(3, new java.sql.Date(System.currentTimeMillis()));
+                            stmt2.executeUpdate();
+                        }
+                    } else {
+                        System.out.println("Failed to retrieve author ID.");
+                    }
+                }
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
