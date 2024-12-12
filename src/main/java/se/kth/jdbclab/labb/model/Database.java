@@ -9,11 +9,18 @@ import java.sql.*;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Handles database operations for the application, including CRUD operations on books,
+ * authors, reviews, and user accounts.
+ */
 public class Database implements IDatabase {
     private Connection connection;
     private Alert alertError;
     String query;
 
+    /**
+     * Establishes a connection to the MySQL database and initializes error alerts.
+     */
     public Database() {
         alertError = new Alert(Alert.AlertType.ERROR);
         try {
@@ -23,6 +30,11 @@ public class Database implements IDatabase {
         }
     }
 
+    /**
+     * Loads books from the database based on the specified query.
+     * @param query The SQL query to execute.
+     * @return A list of books retrieved from the database.
+     */
     private List<Book> loader(String query) {
         List<Book> bookList = FXCollections.observableArrayList();
         try {
@@ -65,6 +77,10 @@ public class Database implements IDatabase {
         return bookList;
     }
 
+    /**
+     * Retrieves all books from the database.
+     * @return A list of all books in the database.
+     */
     @Override
     public List<Book> loadBooks() {
         return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorID, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
@@ -76,6 +92,12 @@ public class Database implements IDatabase {
                 "LEFT JOIN T_User ON T_User.userID = T_Grade.userID;");
     }
 
+    /**
+     * Retrieves books from the database based on the specified search criteria and value.
+     * @param criteria The field to search by (e.g., "ID", "Title", "Author").
+     * @param value The search value.
+     * @return A list of books matching the criteria.
+     */
     @Override
     public List<Book> loadBooks(String criteria, String value){
         String subQuery = switch (criteria) {
@@ -94,6 +116,10 @@ public class Database implements IDatabase {
                 "WHERE " + subQuery + " LIKE '%" + value + "%';");
     }
 
+    /**
+     * Retrieves all authors from the database.
+     * @return A list of all authors in the database.
+     */
     @Override
     public List<Author> loadAuthors() {
         List<Author> authorList = FXCollections.observableArrayList();
@@ -111,12 +137,12 @@ public class Database implements IDatabase {
     }
 
 
+
     /**
-     * Inserts or Removes a book in the database depending on the variable mode.
-     *
-     * @param mode false: inserts books, true: removes book.
-     * @param userID
-     * @param selectedBook
+     * Inserts or removes a book in the database.
+     * @param mode False to insert a book, true to remove a book.
+     * @param userID The ID of the user performing the operation.
+     * @param selectedBook The book to insert or remove.
      */
     @Override
     public void manageBook(boolean mode, int userID, Book selectedBook) {
@@ -215,6 +241,11 @@ public class Database implements IDatabase {
 
     }
 
+    /**
+     * Retrieves all reviews for a specific book by its ISBN.
+     * @param isbn The ISBN of the book.
+     * @return A list of reviews for the book.
+     */
     @Override
     public List<Review> loadReviews(String isbn) {
         List<Review> reviewList = FXCollections.observableArrayList();
@@ -241,6 +272,13 @@ public class Database implements IDatabase {
         return reviewList;
     }
 
+    /**
+     * Creates a new user account in the database.
+     * @param userName The username of the new account.
+     * @param email The email of the new account.
+     * @param password The password of the new account.
+     * @return The created user object or null if creation fails.
+     */
     @Override
     public User createAccount(String userName, String email, String password) {
         try {
@@ -283,6 +321,13 @@ public class Database implements IDatabase {
         return null;
     }
 
+    /**
+     * Logs in a user by checking the provided email and password against the database.
+     *
+     * @param mail     the email address of the user
+     * @param password the password of the user
+     * @return a User object if login is successful, null otherwise
+     */
     @Override
     public User loginAccount(String mail, String password){
         query = "SELECT userName, userID FROM T_User WHERE email = ? AND userPassword = ?";
@@ -307,7 +352,12 @@ public class Database implements IDatabase {
         }
     }
 
-
+    /**
+     * Inserts a review into the database for a specific book.
+     *
+     * @param review the Review object containing the review details
+     * @param isbn   the ISBN of the book being reviewed
+     */
     @Override
     public void insertReview(Review review, String isbn) {
         try {
@@ -327,6 +377,12 @@ public class Database implements IDatabase {
         }
     }
 
+    /**
+     * Inserts a new author into the database and links it to the user who added it.
+     *
+     * @param userID the ID of the user adding the author
+     * @param author the Author object containing the author's details
+     */
     @Override
     public void insertAuthor(int userID, Author author) {
         Date DOB = (Date) author.getDateOfBirth();

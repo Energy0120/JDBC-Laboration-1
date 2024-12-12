@@ -2,6 +2,7 @@ package se.kth.jdbclab.labb.view;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -370,21 +371,32 @@ public class MainView {
         HBox AuthorBox = new HBox(10);
         ComboBox<Author> AuthorCombo = new ComboBox<>();
         AuthorCombo.getItems().addAll(controller.loadAuthors());
-        AuthorBox.getChildren().addAll(AuthorLabel, AuthorCombo);
+        Button addAuthorButton = new Button("Add Author");
+        ListView<Author> authorListView = new ListView<>();
+        ObservableList<Author> addedAuthors = FXCollections.observableArrayList();
+        authorListView.setItems(addedAuthors);
+        authorListView.setPrefHeight(100);
+        addAuthorButton.setOnAction(e -> {
+            Author selectedAuthor = AuthorCombo.getSelectionModel().getSelectedItem();
+            if (selectedAuthor != null && !addedAuthors.contains(selectedAuthor)) {
+                addedAuthors.add(selectedAuthor);
+            }
+        });
+        AuthorBox.getChildren().addAll(AuthorCombo, addAuthorButton);
         AuthorBox.setAlignment(Pos.CENTER_RIGHT);
         HBox GenreBox = new HBox(10);
         Label GenreLabel = new Label("Genre: ");
         TextField GenreField = new TextField ();
         GenreBox.getChildren().addAll(GenreLabel, GenreField);
         GenreBox.setAlignment(Pos.CENTER_RIGHT);
-        container.getChildren().addAll(ISBNBox, TitleBox, AuthorBox, GenreBox);
+        container.getChildren().addAll(ISBNBox, TitleBox, AuthorLabel, AuthorBox, authorListView, GenreBox);
         dialog.getDialogPane().setContent(container);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.setTitle("Add Book");
         dialog.setResultConverter(buttonType -> {
             if (buttonType == ButtonType.OK) {
-                if (Objects.equals(ISBNField.getText(), "") || Objects.equals(TitleField.getText(), "") || Objects.equals(GenreField.getText(), "") || AuthorCombo.getSelectionModel().getSelectedItem() == null) {
-                    alertError = new Alert(Alert.AlertType.ERROR);
+                if (ISBNField.getText().isEmpty() || TitleField.getText().isEmpty() || GenreField.getText().isEmpty() || addedAuthors.isEmpty()) {
+                    Alert alertError = new Alert(Alert.AlertType.ERROR);
                     alertError.setTitle("Book Error");
                     alertError.setHeaderText("Invalid Input");
                     alertError.setContentText("Please fill all required fields.");
@@ -392,8 +404,7 @@ public class MainView {
                     return null;
                 }
                 List<Genre> genreList = new ArrayList<>();
-                List<Author> authorList = new ArrayList<>();
-                authorList.add(AuthorCombo.getSelectionModel().getSelectedItem());
+                List<Author> authorList = new ArrayList<>(addedAuthors);
                 String[] genres = GenreField.getText().split(", ");
                 for (String genre : genres) {
                     genreList.add(new Genre(genre.trim()));
