@@ -382,14 +382,14 @@ public class MainView {
                 addedAuthors.add(selectedAuthor);
             }
         });
-        AuthorBox.getChildren().addAll(AuthorCombo, addAuthorButton);
+        AuthorBox.getChildren().addAll(AuthorLabel, AuthorCombo, addAuthorButton);
         AuthorBox.setAlignment(Pos.CENTER_RIGHT);
         HBox GenreBox = new HBox(10);
         Label GenreLabel = new Label("Genre: ");
         TextField GenreField = new TextField ();
         GenreBox.getChildren().addAll(GenreLabel, GenreField);
         GenreBox.setAlignment(Pos.CENTER_RIGHT);
-        container.getChildren().addAll(ISBNBox, TitleBox, AuthorLabel, AuthorBox, authorListView, GenreBox);
+        container.getChildren().addAll(ISBNBox, TitleBox, AuthorBox, authorListView, GenreBox);
         dialog.getDialogPane().setContent(container);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         dialog.setTitle("Add Book");

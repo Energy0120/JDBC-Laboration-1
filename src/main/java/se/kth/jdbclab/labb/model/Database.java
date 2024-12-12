@@ -385,8 +385,11 @@ public class Database implements IDatabase {
      */
     @Override
     public void insertAuthor(int userID, Author author) {
-        Date DOB = (Date) author.getDateOfBirth();
-        Date DOD = (Date) author.getDateOfDeath();
+        Date DOB = null, DOD = null;
+        if(author.getDateOfBirth() != null)
+            DOB = new java.sql.Date(author.getDateOfBirth().getTime());
+        if(author.getDateOfDeath() != null)
+            DOD = new java.sql.Date(author.getDateOfDeath().getTime());
         try {
             connection.setAutoCommit(false);
             query = "INSERT INTO T_Author (authorName, DOB, DOD) VALUES (?, ?, ?)";
@@ -395,11 +398,11 @@ public class Database implements IDatabase {
                 if(DOB == null)
                     stmt.setNull(2, 4);
                 else
-                    stmt.setDate(2, new java.sql.Date(author.getDateOfBirth().getTime()));
+                    stmt.setDate(2, DOB);
                 if(DOD == null)
                     stmt.setNull(3, 4);
                 else
-                    stmt.setDate(3, new java.sql.Date(author.getDateOfDeath().getTime()));
+                    stmt.setDate(3, DOD);
                 stmt.executeUpdate();
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
