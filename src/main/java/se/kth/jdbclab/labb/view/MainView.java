@@ -263,6 +263,7 @@ public class MainView {
                 "Author",
                 "Genre"
         );
+        searchBox.getSelectionModel().selectFirst();
         criteriaBox.getChildren().addAll(criteriaLabel, searchBox);
         criteriaBox.setAlignment(Pos.CENTER_RIGHT);
         Label search = new Label("Value : ");

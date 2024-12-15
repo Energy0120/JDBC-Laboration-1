@@ -2,7 +2,6 @@ package se.kth.jdbclab.labb.controller;
 import se.kth.jdbclab.labb.model.*;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The MainController class manages the operations related to books, users, and reviews.
@@ -119,7 +118,20 @@ public class MainController {
      * @return A list of books matching the search criteria and value.
      */
     public List<Book> loadBooksByCriteria(String criteria, String value) {
-        return database.loadBooks(criteria, value);
+        switch (criteria) {
+            case "ID" -> {
+                return database.loadBooksByISBN(value);
+            }
+            case "Title" -> {
+                return database.loadBooksByTitle(value);
+            }
+            case "Author" -> {
+                return database.loadBooksByAuthor(value);
+            }
+            case null, default -> {
+                return database.loadBooksByGenre(value);
+            }
+        }
     }
 
     /**

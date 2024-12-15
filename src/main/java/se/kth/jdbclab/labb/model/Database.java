@@ -93,19 +93,12 @@ public class Database implements IDatabase {
     }
 
     /**
-     * Retrieves books from the database based on the specified search criteria and value.
-     * @param criteria The field to search by (e.g., "ID", "Title", "Author").
-     * @param value The search value.
-     * @return A list of books matching the criteria.
+     * Retrieves books from the database based on the specified ISBN.
+     * @param ISBN The parameter to search for in the Database.
+     * @return A list of books matching the provided ISBN.
      */
     @Override
-    public List<Book> loadBooks(String criteria, String value){
-        String subQuery = switch (criteria) {
-            case "ID" -> "T_Book.ISBN";
-            case "Title" -> "T_Book.Title";
-            case "Author" -> "T_Author.AuthorName";
-            case null, default -> "T_Book_Genre.Genre";
-        };
+    public List<Book> loadBooksByISBN(String ISBN){
         return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorID, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
                 "FROM T_Book\n" +
                 "JOIN T_Book_Author ON T_Book.ISBN = T_Book_Author.ISBN\n" +
@@ -113,7 +106,58 @@ public class Database implements IDatabase {
                 "JOIN T_Book_Genre ON T_Book.ISBN = T_Book_Genre.ISBN\n" +
                 "LEFT JOIN T_Grade ON T_Book.ISBN = T_Grade.ISBN\n" +
                 "LEFT JOIN T_User ON T_User.userID = T_Grade.userID\n " +
-                "WHERE " + subQuery + " LIKE '%" + value + "%';");
+                "WHERE T_Book.ISBN LIKE '%" + ISBN + "%';");
+    }
+
+    /**
+     * Retrieves books from the database that contain the specified word in the Title.
+     * @param title The parameter to search for in the Database.
+     * @return A list of books matching the provided title.
+     */
+    @Override
+    public List<Book> loadBooksByTitle(String title){
+        return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorID, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
+                "FROM T_Book\n" +
+                "JOIN T_Book_Author ON T_Book.ISBN = T_Book_Author.ISBN\n" +
+                "JOIN T_Author ON T_Book_Author.AuthorID = T_Author.AuthorID\n" +
+                "JOIN T_Book_Genre ON T_Book.ISBN = T_Book_Genre.ISBN\n" +
+                "LEFT JOIN T_Grade ON T_Book.ISBN = T_Grade.ISBN\n" +
+                "LEFT JOIN T_User ON T_User.userID = T_Grade.userID\n " +
+                "WHERE T_Book.title LIKE '%" + title + "%';");
+    }
+
+    /**
+     * Retrieves books from the database based on the specified author name.
+     * @param authorName The parameter to search for in the Database.
+     * @return A list of books written by the specified author.
+     */
+    @Override
+    public List<Book> loadBooksByAuthor(String authorName){
+        return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorID, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
+                "FROM T_Book\n" +
+                "JOIN T_Book_Author ON T_Book.ISBN = T_Book_Author.ISBN\n" +
+                "JOIN T_Author ON T_Book_Author.AuthorID = T_Author.AuthorID\n" +
+                "JOIN T_Book_Genre ON T_Book.ISBN = T_Book_Genre.ISBN\n" +
+                "LEFT JOIN T_Grade ON T_Book.ISBN = T_Grade.ISBN\n" +
+                "LEFT JOIN T_User ON T_User.userID = T_Grade.userID\n " +
+                "WHERE T_Author.authorName LIKE '%" + authorName + "%';");
+    }
+
+    /**
+     * Retrieves books from the database based on the specified genre.
+     * @param genre The parameter to search for in the Database.
+     * @return A list of books matching the provided genre.
+     */
+    @Override
+    public List<Book> loadBooksByGenre(String genre){
+        return loader("SELECT  T_Book.ISBN,  T_Book.Title, T_Author.AuthorID, T_Author.AuthorName, T_book_genre.genre, T_Grade.gradeID, T_Grade.grade, T_Grade.gradeText, T_Grade.gradeDate, T_User.userName\n" +
+                "FROM T_Book\n" +
+                "JOIN T_Book_Author ON T_Book.ISBN = T_Book_Author.ISBN\n" +
+                "JOIN T_Author ON T_Book_Author.AuthorID = T_Author.AuthorID\n" +
+                "JOIN T_Book_Genre ON T_Book.ISBN = T_Book_Genre.ISBN\n" +
+                "LEFT JOIN T_Grade ON T_Book.ISBN = T_Grade.ISBN\n" +
+                "LEFT JOIN T_User ON T_User.userID = T_Grade.userID\n " +
+                "WHERE T_Book_Genre.genre LIKE '%" + genre + "%';");
     }
 
     /**
@@ -303,7 +347,7 @@ public class Database implements IDatabase {
 
             // Insert the new user
             String insertQuery = "INSERT INTO T_User (userName, email, userPassword) VALUES (?, ?, ?)";
-            try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
+            try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
                 insertStmt.setString(1, userName);
                 insertStmt.setString(2, email);
                 insertStmt.setString(3, password);
@@ -316,7 +360,6 @@ public class Database implements IDatabase {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }

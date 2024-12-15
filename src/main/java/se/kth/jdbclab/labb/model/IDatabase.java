@@ -27,14 +27,15 @@ public interface IDatabase {
     List<Book> loadBooks() throws SQLException;
 
     /**
-     * Loads books from the database based on a specific criteria and value.
+     * Loads books from the database based on a specific criteria.
      *
-     * @param criteria The search criteria (e.g., "author", "title").
-     * @param value    The value to search for (e.g., the author's name or the book title).
      * @return A list of books matching the criteria.
      * @throws SQLException If a database access error occurs.
      */
-    List<Book> loadBooks(String criteria, String value) throws SQLException;
+    List<Book> loadBooksByISBN(String ISBN) throws SQLException;
+    List<Book> loadBooksByTitle(String Title) throws SQLException;
+    List<Book> loadBooksByGenre(String Genre) throws SQLException;
+    List<Book> loadBooksByAuthor(String authorName) throws SQLException;
 
     /**
      * Loads reviews for a specific book identified by its ISBN.
