@@ -14,9 +14,8 @@ public class Author {
     /**
      * Constructs an Author with all details.
      *
-     * @param AuthorID    The ID of the author.
      * @param Name        The name of the author.
-     * @param DateOfBirth The birth date of the author.
+     * @param DateOfBirth The birthdate of the author.
      * @param DateOfDeath The death date of the author.
      */
     public Author(String Name, Date DateOfBirth, Date DateOfDeath) {

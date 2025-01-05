@@ -9,14 +9,14 @@ import java.util.List;
  */
 public class MainController {
     private User currentUser;
-    Database database;
+    IDatabase database;
 
     /**
      * Constructs a MainController instance with the provided database connection.
      *
      * @param database The database instance used for data operations.
      */
-    public MainController(Database database) {
+    public MainController(IDatabase database) {
         this.database = database;
     }
 

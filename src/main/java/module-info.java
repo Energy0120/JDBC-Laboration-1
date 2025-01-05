@@ -5,6 +5,9 @@ module se.kth.jdbclab.labb {
     requires java.desktop;
     requires mysql.connector.j;
     requires jdk.compiler;
+    requires org.mongodb.driver.core;
+    requires org.mongodb.bson;
+    requires org.mongodb.driver.sync.client;
 
 
     opens se.kth.jdbclab.labb to javafx.fxml;
