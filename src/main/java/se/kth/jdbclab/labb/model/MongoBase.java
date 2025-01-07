@@ -6,6 +6,7 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -76,7 +77,8 @@ public class MongoBase implements IDatabase {
             authorList.add(new Author(s));
         for(String g : genre)
             genreList.add(new Genre(g));
-        bookList.add(new Book(isbn, title, authorList, genreList));
+        Book newBook = new Book(isbn, title, authorList, genreList);
+        bookList.add(newBook);
         return bookList;
     }
 
@@ -88,6 +90,13 @@ public class MongoBase implements IDatabase {
         try (MongoCursor<Document> cursor = books.find().iterator()) {
             cursor.forEachRemaining(document -> {
                 loader(bookList, document);
+            });
+        }
+        for(Book book : bookList){
+            Bson filter = Filters.eq("isbn", book.getIsbn());
+            db.getCollection("review").find(filter).forEach(review -> {
+                if(book.getReviews() != null)
+                    book.getReviews().add(new Review(review.getInteger("grade")));
             });
         }
         return bookList;
@@ -218,6 +227,17 @@ public class MongoBase implements IDatabase {
     public void insertReview(Review review, String isbn) {
         MongoDatabase db = mongoClient.getDatabase("bookvault");
         MongoCollection<Document> reviews = db.getCollection("review");
+        if(reviews.find(Filters.eq("userid", review.getUserID())).first() != null) {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    alertError.setContentText("You have already reviewed this book.");
+                    alertError.show();
+                }
+            });
+
+            return;
+        }
         MongoCollection<Document> counters = db.getCollection("counters");
 
         Document counterDoc = counters.find(Filters.eq("_id", "review")).first();

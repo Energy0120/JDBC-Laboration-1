@@ -45,6 +45,7 @@ public class Book {
         this.title = title;
         this.authors = authors;
         this.genre = genre;
+        this.reviews = FXCollections.observableArrayList();
     }
 
     /**

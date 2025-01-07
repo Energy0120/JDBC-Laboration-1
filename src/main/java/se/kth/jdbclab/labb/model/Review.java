@@ -49,6 +49,10 @@ public class Review {
         this.userName = userName;
     }
 
+    public Review(int grade) {
+        this.grade = grade;
+    }
+
     /**
      * Sets the unique ID of the review.
      *
