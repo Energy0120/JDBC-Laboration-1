@@ -42,6 +42,13 @@ public class Review {
         this.userID = userID;
     }
 
+    public Review(int grade, String text, Date grade_date, String userName) {
+        this.grade = grade;
+        this.text = text;
+        this.grade_date = grade_date;
+        this.userName = userName;
+    }
+
     /**
      * Sets the unique ID of the review.
      *

@@ -35,6 +35,10 @@ public class Author {
         this.Name = Name;
     }
 
+    public Author(String Name) {
+        this.Name = Name;
+    }
+
     /**
      * Gets the Author's ID.
      *

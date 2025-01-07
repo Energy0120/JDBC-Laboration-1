@@ -170,12 +170,12 @@ public class Book {
      * @return The average rating as a string, or "No Rating" if no reviews exist.
      */
     public String getAverageRating() {
+        if(reviews == null || reviews.isEmpty()) {
+            return "No Rating";
+        }
         float averageRating = 0;
         for (Review review : reviews) {
             averageRating += review.getGrade();
-        }
-        if (averageRating == 0) {
-            return "No Rating";
         }
         return String.valueOf(BigDecimal.valueOf(averageRating / reviews.size()).setScale(2, BigDecimal.ROUND_HALF_UP).floatValue());
     }
